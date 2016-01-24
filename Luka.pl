@@ -1,8 +1,9 @@
 #!/usr/bin/perl
-# Luka's Birthday: Oct 14 15:42:23 2009 
+# Luka's Birthday: Oct 14 15:42:23 2009
 # If there's actual programmers looking at this, forgive me, I've only been working on this for five years. I have much to learn ;~;
 # Mindmap is over here -> https://coggle.it/diagram/538ec42bbea51f8044000010/f349c7e109341279d968f2efd62a4ff923f30bc5005029330309cc8709631a20
 use warnings;
+BEGIN: { push(@INC, "."); }
 use Cwd 'abs_path'; # Used for more efficient chdir! Less Errors!
 use IO::Select; # Used for handling connections!
 use IO::Socket; # Used for connecting!
@@ -13,8 +14,8 @@ $lk{select} = IO::Select->new();
 ($lk{directory} = abs_path($0)) =~ s/([\\\/])[^\\\/]+?\.pl$/$1/;
 lkDebug($lk{directory});
 chdir($lk{directory}) or warn "Couldn't chdir to $lk{directory}.";
-if(!-e "Include/") { lkDebug("No Include directory! Making one."); mkdir("Include"); }
-push(@INC,"./Include/"); # Used for local perl modules and crap.
+# if(!-e "Include/") { lkDebug("No Include directory! Making one."); mkdir("Include"); }
+# push(@INC,"./Include/"); # Used for local perl modules and crap.
 eval("use Android"); if($@){ $lk{os} = $^O; } else { $lk{os} = "android"; eval('$lk{droid} = Android->new();'); }
 if(!lkLoad()) {
   lkDebug("You don't have any save file! You must be new here! Welcome to Luka.");
@@ -122,7 +123,7 @@ sub lkLoad {
   my $json = join "", <DATA>;
   close DATA;
   eval{%{$lk{data}} = %{decode_json($json)};};
-  if($@) { return 0; } 
+  if($@) { return 0; }
   else { return 1; }
 }
 sub lkConnectTo {
@@ -179,7 +180,7 @@ sub lkConnect {
           next;
         }
         $rawmsg =~ s/\n|\r//g;
-        if($rawmsg =~ /:.*?:/) { @msg = ((split /\s/, ($rawmsg =~ /:(.*?) :/)[0]), ($rawmsg =~ /:.*? :(.*)/g)[0]); } 
+        if($rawmsg =~ /:.*?:/) { @msg = ((split /\s/, ($rawmsg =~ /:(.*?) :/)[0]), ($rawmsg =~ /:.*? :(.*)/g)[0]); }
         else { @msg = (split /:|\s/, $rawmsg); }
         if($msg[0] =~ /^$/) { my $c = -1; foreach(@msg) { $c++; next if($c == 0); $msg[($c-1)] = $msg[$c]; } pop(@msg); }
         if($msg[1] =~ /^$/) { my $c = -1; foreach(@msg) { $c++; next if(($c == 0) || ($c == 1)); $msg[($c-1)] = $msg[$c]; } pop(@msg); @msg = reverse(@msg); }
@@ -232,7 +233,7 @@ sub lkLoadPlugins {
         $lk{tmp}{lastUpdated}{$_} = (stat($_))[9];
         lkDebug("Loading $_.");
         open NEW, "<".$_; eval(join "", <NEW>);
-        if($@){ push(@errors, {plugin=>$_,message=>$@}); delete $lk{tmp}{lastUpdated}{$_}; lkDebug($@); } 
+        if($@){ push(@errors, {plugin=>$_,message=>$@}); delete $lk{tmp}{lastUpdated}{$_}; lkDebug($@); }
         close NEW;
       }
     }
@@ -298,9 +299,9 @@ sub addPlug {
   }
   else {
     # Key already exists! Warn about it, but overwrite anyway.
-    if($lk{plugin}{$_[0]}) { 
-      &{$lk{plugin}{$_[0]}{code}{unload}}($_[0]) if($lk{plugin}{$_[0]}{code}{unload}); 
-      lkDebug("Overwriting Plugin ${$_[1]}{name} ($_[0])"); 
+    if($lk{plugin}{$_[0]}) {
+      &{$lk{plugin}{$_[0]}{code}{unload}}($_[0]) if($lk{plugin}{$_[0]}{code}{unload});
+      lkDebug("Overwriting Plugin ${$_[1]}{name} ($_[0])");
       delete $lk{plugin}{$_[0]};
     }
     # Key doesn't exist. Must be loading the plugin for the first time!
